@@ -6,4 +6,10 @@ body {
     margin: 0px;
     overflow: hidden; /*  Disable scrollbars */
     background-color: black;
+
+    #object-gui {
+        position: absolute;
+        left: 20px;
+        top: 0px;
+       } 
 }

@@ -35,6 +35,65 @@ function setup(shaders) {
 
     const gui = new dat.GUI();
 
+    // Create the GUI
+    const objectGUI = new dat.GUI();
+    objectGUI.domElement.id = "object-gui";
+
+    // Data object to manipulate
+    const data = {
+      name: "Bunny",
+      position: { x: 0, y: 0, z: 0 },
+      rotation: { x: 0, y: -90, z: 0 },
+      scale: { x: 1, y: 1, z: 1 },
+      material: {
+        shader: "gouraud",
+        Ka: [31, 66, 142], // Ambient color (RGB)
+        Kd: [50, 152, 247], // Diffuse color (RGB)
+        Ks: [255, 255, 255], // Specular color (RGB)
+        shininess: 100,
+      }
+    };
+
+    objectGUI.add(data, "name",["Bunny","Cow","Sphere"]).name("Name");
+    // GUI Folders
+    const objectTransform = objectGUI.addFolder("Transform");
+    const positionFolder = objectTransform.addFolder("Position");
+    positionFolder.add(data.position, "x", -100, 100, 1).name("X");
+    positionFolder.add(data.position, "y", -100, 100, 1).name("Y");
+    positionFolder.add(data.position, "z", -100, 100, 1).name("Z");
+
+    const rotationFolder = objectTransform.addFolder("Rotation");
+    rotationFolder.add(data.rotation, "x", -180, 180, 1).name("X");
+    rotationFolder.add(data.rotation, "y", -180, 180, 1).name("Y");
+    rotationFolder.add(data.rotation, "z", -180, 180, 1).name("Z");
+
+    const scaleFolder = objectTransform.addFolder("Scale");
+    scaleFolder.add(data.scale, "x", 0.1, 5, 0.1).name("X");
+    scaleFolder.add(data.scale, "y", 0.1, 5, 0.1).name("Y");
+    scaleFolder.add(data.scale, "z", 0.1, 5, 0.1).name("Z");
+
+    const materialFolder = objectGUI.addFolder("Material");
+    materialFolder.add(data.material, "shader", ["gouraud", "phong", "flat"]).name("Shader");
+
+    // Ambient (Ka) color
+    materialFolder.addColor(data.material, "Ka").name("Ka (Ambient)");
+
+    // Diffuse (Kd) color
+    materialFolder.addColor(data.material, "Kd").name("Kd (Diffuse)");
+
+    // Specular (Ks) color
+    materialFolder.addColor(data.material, "Ks").name("Ks (Specular)");
+
+    // Shininess
+    materialFolder.add(data.material, "shininess", 0, 200, 1).name("Shininess");
+
+    // Open folders by default
+    objectTransform.open();
+    positionFolder.open();
+    rotationFolder.open();
+    scaleFolder.open();
+    materialFolder.open();
+
     const optionsGui = gui.addFolder("options");
     optionsGui.add(options, "wireframe");
     optionsGui.add(options, "normals");
