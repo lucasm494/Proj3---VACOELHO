@@ -33,7 +33,93 @@ function setup(shaders) {
         normals: true
     }
 
+    // Data structure for lights
+    let lightsData = {
+        worldLight: {
+        position: { x: 0, y: 10, z: 0 },
+        ambient: [255, 255, 255], // Ambient color (RGB)
+        diffuse: [255, 255, 255], // Diffuse color (RGB)
+        specular: [255, 255, 255], // Specular color (RGB)
+        directional: false,
+        active: true,
+        },
+        cameraLight: {
+        position: { x: 0, y: 5, z: 5 },
+        ambient: [255, 255, 255], // Ambient color (RGB)
+        diffuse: [255, 255, 255], // Diffuse color (RGB)
+        specular: [255, 255, 255], // Specular color (RGB)
+        directional: false,
+        active: true,
+        },
+        objectLight: {
+        position: { x: 0, y: 0, z: 10 },
+        ambient: [255, 255, 255], // Ambient color (RGB)
+        diffuse: [255, 255, 255], // Diffuse color (RGB)
+        specular: [255, 255, 255], // Specular color (RGB)
+        directional: false,
+        active: true,
+        },
+    };
+
     const gui = new dat.GUI();
+    gui.domElement.id = "ligths-gui";
+    
+    const optionsGui = gui.addFolder("options");
+    optionsGui.add(options, "wireframe");
+    optionsGui.add(options, "normals");
+
+    const cameraGui = gui.addFolder("camera");
+
+    cameraGui.add(camera, "fovy").min(1).max(179).step(1).listen();
+    cameraGui.add(camera, "aspect").min(0).max(10).step(0.01).listen().domElement.style.pointerEvents = "none";
+
+    cameraGui.add(camera, "near").min(0.1).max(20).step(0.01).listen().onChange(function (v) {
+        camera.near = Math.min(camera.far - 0.5, v);
+    });
+
+    cameraGui.add(camera, "far").min(0.1).max(20).step(0.01).listen().onChange(function (v) {
+        camera.far = Math.max(camera.near + 0.5, v);
+    });
+
+    const eye = cameraGui.addFolder("eye");
+    eye.add(camera.eye, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    eye.add(camera.eye, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    eye.add(camera.eye, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
+
+    const at = cameraGui.addFolder("at");
+    at.add(camera.at, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    at.add(camera.at, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    at.add(camera.at, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
+
+    const up = cameraGui.addFolder("up");
+    up.add(camera.up, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    up.add(camera.up, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    up.add(camera.up, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
+
+    // Lights folder
+    const lightsFolder = gui.addFolder("lights");
+    
+    // Add a subfolder for each light
+    ["worldLight", "cameraLight", "objectLight"].forEach((lightName) => {
+        const lightFolder = lightsFolder.addFolder(`${lightName.replace("Light", " Light")}`);
+    
+        // Position folder
+        const positionFolder = lightFolder.addFolder("Position");
+        positionFolder.add(lightsData[lightName].position, "x", -50, 50, 1).name("X");
+        positionFolder.add(lightsData[lightName].position, "y", -50, 50, 1).name("Y");
+        positionFolder.add(lightsData[lightName].position, "z", -50, 50, 1).name("Z");
+
+        positionFolder.open();
+    
+        // Color pickers
+        lightFolder.addColor(lightsData[lightName], "ambient").name("Ambient");
+        lightFolder.addColor(lightsData[lightName], "diffuse").name("Diffuse");
+        lightFolder.addColor(lightsData[lightName], "specular").name("Specular");
+    
+        // Directional and Active checkboxes
+        lightFolder.add(lightsData[lightName], "directional").name("Directional");
+        lightFolder.add(lightsData[lightName], "active").name("Active");
+    });
 
     // Create the GUI
     const objectGUI = new dat.GUI();
@@ -88,43 +174,9 @@ function setup(shaders) {
     materialFolder.add(data.material, "shininess", 0, 200, 1).name("Shininess");
 
     // Open folders by default
-    objectTransform.open();
     positionFolder.open();
     rotationFolder.open();
     scaleFolder.open();
-    materialFolder.open();
-
-    const optionsGui = gui.addFolder("options");
-    optionsGui.add(options, "wireframe");
-    optionsGui.add(options, "normals");
-
-    const cameraGui = gui.addFolder("camera");
-
-    cameraGui.add(camera, "fovy").min(1).max(179).step(1).listen();
-    cameraGui.add(camera, "aspect").min(0).max(10).step(0.01).listen().domElement.style.pointerEvents = "none";
-
-    cameraGui.add(camera, "near").min(0.1).max(20).step(0.01).listen().onChange(function (v) {
-        camera.near = Math.min(camera.far - 0.5, v);
-    });
-
-    cameraGui.add(camera, "far").min(0.1).max(20).step(0.01).listen().onChange(function (v) {
-        camera.far = Math.max(camera.near + 0.5, v);
-    });
-
-    const eye = cameraGui.addFolder("eye");
-    eye.add(camera.eye, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    eye.add(camera.eye, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    eye.add(camera.eye, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
-
-    const at = cameraGui.addFolder("at");
-    at.add(camera.at, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    at.add(camera.at, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    at.add(camera.at, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
-
-    const up = cameraGui.addFolder("up");
-    up.add(camera.up, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    up.add(camera.up, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    up.add(camera.up, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
 
     // matrices
     let mView, mProjection;
