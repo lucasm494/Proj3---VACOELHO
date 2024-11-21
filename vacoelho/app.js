@@ -19,6 +19,11 @@ function setup(shaders) {
 
     CUBE.init(gl);
     SPHERE.init(gl);
+    CYLINDER.init(gl);
+    PYRAMID.init(gl);
+    TORUS.init(gl);
+    BUNNY.init(gl);
+    COW.init(gl);
 
     const program = buildProgramFromSources(gl, shaders['shader.vert'], shaders['shader.frag']);
 
@@ -129,6 +134,17 @@ function setup(shaders) {
     // Create the GUI
     const objectGUI = new dat.GUI();
     objectGUI.domElement.id = "object-gui";
+
+    // Define the available objects and their corresponding draw functions
+    const objectMapping = {
+        "Bunny": BUNNY,
+        "Cow": COW,
+        "Sphere": SPHERE,
+        "Cylinder": CYLINDER,
+        "Cube": CUBE,
+        "Pyramid": PYRAMID,
+        "Torus": TORUS
+    };
 
     // Data object to manipulate
     const data = {
@@ -312,8 +328,9 @@ function setup(shaders) {
 
         gl.uniform1i(gl.getUniformLocation(program, "u_use_normals"), options.normals);
 
-        SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
-        CUBE.draw(gl, program, gl.LINES);
+        // Use the object mapping to call the appropriate draw function
+        const selectedObject = objectMapping[data.name];
+        selectedObject.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
     }
 }
 
