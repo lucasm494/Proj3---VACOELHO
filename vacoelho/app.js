@@ -145,7 +145,7 @@ function setup(shaders) {
       }
     };
 
-    objectGUI.add(data, "name",["Bunny","Cow","Sphere"]).name("Name");
+    objectGUI.add(data, "name",["Bunny","Cow","Sphere","Cylinder","Cube","Pyramid","Torus"]).name("Name");
     // GUI Folders
     const objectTransform = objectGUI.addFolder("Transform");
     const positionFolder = objectTransform.addFolder("Position");
@@ -164,7 +164,7 @@ function setup(shaders) {
     scaleFolder.add(data.scale, "z", 0.1, 5, 0.1).name("Z");
 
     const materialFolder = objectGUI.addFolder("Material");
-    materialFolder.add(data.material, "shader", ["gouraud", "phong", "flat"]).name("Shader");
+    materialFolder.add(data.material, "shader", ["gouraud", "phong"]).name("Shader");
 
     // Ambient (Ka) color
     materialFolder.addColor(data.material, "Ka").name("Ka (Ambient)");
@@ -182,6 +182,7 @@ function setup(shaders) {
     positionFolder.open();
     rotationFolder.open();
     scaleFolder.open();
+    
 
     // matrices
     let mView, mProjection;
