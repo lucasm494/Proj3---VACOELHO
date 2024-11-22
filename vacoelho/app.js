@@ -13,6 +13,8 @@ import * as COW from '../../libs/objects/cow.js';
 
 import * as STACK from '../../libs/stack.js';
 
+let isAnimating = false;
+
 function setup(shaders) {
     const canvas = document.getElementById('gl-canvas');
     const gl = setupWebGL(canvas);
@@ -166,7 +168,7 @@ function setup(shaders) {
     const objectTransform = objectGUI.addFolder("Transform");
     const positionFolder = objectTransform.addFolder("Position");
     positionFolder.add(data.position, "x", -1.5, 1.5, 0.1).name("X");
-    positionFolder.add(data.position, "y", 0, 2, 0.1).name("Y");
+    positionFolder.add(data.position, "y", 0, 2, 0.1).name("Y").domElement.style.pointerEvents = "none";;
     positionFolder.add(data.position, "z", -1.5, 1.5, 0.1).name("Z");
 
     const rotationFolder = objectTransform.addFolder("Rotation");
@@ -298,6 +300,13 @@ function setup(shaders) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
     });
 
+    window.addEventListener('keydown', (event) => {
+        if (event.code === 'Space') {
+            isAnimating = !isAnimating; // Toggle animation state
+        }
+    });
+    
+
     window.requestAnimationFrame(render);
 
     function resizeCanvasToFullWindow() {
@@ -374,6 +383,28 @@ function setup(shaders) {
         STACK.popMatrix();
     }
 
+    function animateObject(time) {
+        STACK.pushMatrix();
+    
+        const amplitude = 1;
+        const frequency = 0.002;
+        const yPosition = amplitude + Math.sin(frequency * time);
+    
+        const rotationSpeed = 0.05;
+        const yRotation = (time * rotationSpeed) % 360;
+    
+        STACK.multTranslation([data.position.x, yPosition, data.position.z]);
+        STACK.multRotationY(yRotation);
+        STACK.multScale([data.scale.x, data.scale.y, data.scale.z]);
+        uploadModelView();
+    
+        const selectedObject = objectMapping[data.name];
+        selectedObject.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+    
+        STACK.popMatrix();
+    }
+    
+
     function render(time) {
         window.requestAnimationFrame(render);
 
@@ -392,9 +423,16 @@ function setup(shaders) {
 
         gl.uniform1i(gl.getUniformLocation(program, "u_use_normals"), options.normals);
 
-        object();
+            // Draw the base
         base();
-        
+
+        // Animate the object if the flag is active
+        if (isAnimating) {
+            animateObject(time);
+        } else {
+            // Draw the object in its current static position
+            object();
+        }
     }
 }
 
