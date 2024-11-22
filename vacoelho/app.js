@@ -218,11 +218,11 @@ function setup(shaders) {
     window.addEventListener('wheel', function (event) {
 
 
-        if (!event.altKey && !event.metaKey && !event.ctrlKey) { // Change fovy
+        if (!event.shiftKey && !event.metaKey ) { // Change fovy
             const factor = 1 - event.deltaY / 1000;
             camera.fovy = Math.max(1, Math.min(100, camera.fovy * factor));
         }
-        else if (event.metaKey || event.ctrlKey) {
+        else if (event.metaKey || event.shiftKey) {
             // move camera forward and backwards (shift)
 
             const offset = event.deltaY / 1000;
@@ -237,7 +237,7 @@ function setup(shaders) {
             camera.eye[1] = ce[1];
             camera.eye[2] = ce[2];
 
-            if (event.ctrlKey) {
+            if (event.shiftKey) {
                 camera.at[0] = ca[0];
                 camera.at[1] = ca[1];
                 camera.at[2] = ca[2];
