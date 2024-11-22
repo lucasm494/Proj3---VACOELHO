@@ -321,37 +321,6 @@ function setup(shaders) {
         gl.viewport(0, 0, canvas.width, canvas.height);
     }
 
-    /*em principio não é preciso isto nem o uploadProjection porque isso já ta feito com a camera 
-    mas ainda não percebi muito bem
-
-    function updateProjection() {
-        // Camera radius from the target point
-        const radius = 2; // Adjust as necessary for the desired distance from the object
-    
-        // Calculate camera position in spherical coordinates based on theta and gamma
-        const eyeX = radius * Math.cos(gamma) * Math.sin(theta);
-        const eyeY = radius * Math.sin(gamma);
-        const eyeZ = radius * Math.cos(gamma) * Math.cos(theta);
-    
-        // Push current stack, set view matrix, then pop
-        STACK.pushMatrix();
-    
-        STACK.loadIdentity(); // Clear the stack for the view matrix
-        STACK.multMatrix(lookAt([eyeX, eyeY + 0.6, eyeZ], [0, 0.6, 0], [0, 1, 0]));
-    
-        // Save the updated view matrix to `mView` for further use if needed
-        mView = STACK.modelView();
-    
-        STACK.popMatrix();
-    
-        // Update projection matrix if needed
-        uploadProjection();
-    }    
-    
-    function uploadProjection() {
-        uploadMatrix("u_projection", mProjection);
-    }  */
-
     function uploadModelView() {
         const modelViewMatrix = STACK.modelView(); // Get the current top matrix from the stack
         uploadMatrix("u_model_view", modelViewMatrix);
