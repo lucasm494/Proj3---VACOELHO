@@ -160,7 +160,8 @@ function setup(shaders) {
         Kd: [50, 152, 247], // Diffuse color (RGB)
         Ks: [255, 255, 255], // Specular color (RGB)
         shininess: 100,
-      }
+      },
+      animate: false
     };
 
     objectGUI.add(data, "name",["Bunny","Cow","Sphere","Cylinder","Cube","Pyramid","Torus"]).name("Name");
@@ -195,6 +196,8 @@ function setup(shaders) {
 
     // Shininess
     materialFolder.add(data.material, "shininess", 0, 200, 1).name("Shininess");
+
+    objectGUI.add(data,"animate").name("Animate").onChange(function(){isAnimating=!isAnimating;});
 
     // Open folders by default
     positionFolder.open();
