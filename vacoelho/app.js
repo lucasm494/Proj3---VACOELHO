@@ -42,7 +42,9 @@ function setup(shaders) {
 
     let options = {
         wireframe: false,
-        normals: true
+        normals: true,
+        backfaceCulling:true,
+        zBuffer: true
     }
 
     // Data structure for lights
@@ -79,6 +81,8 @@ function setup(shaders) {
     const optionsGui = gui.addFolder("options");
     optionsGui.add(options, "wireframe");
     optionsGui.add(options, "normals");
+    optionsGui.add(options, "backfaceCulling");//TODO
+    optionsGui.add(options, "zBuffer");//TODO
 
     const cameraGui = gui.addFolder("camera");
 
@@ -381,6 +385,21 @@ function setup(shaders) {
         window.requestAnimationFrame(render);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // Configurações de Z-Buffer
+        if (options.zBuffer) {
+            gl.enable(gl.DEPTH_TEST);
+        } else {
+            gl.disable(gl.DEPTH_TEST);
+        }
+
+        // Configurações de Backface Culling
+        if (options.backfaceCulling) {
+            gl.enable(gl.CULL_FACE);
+            gl.cullFace(gl.BACK); // Define as faces traseiras para serem ignoradas
+        } else {
+            gl.disable(gl.CULL_FACE);
+        }
 
         gl.useProgram(program);
         
