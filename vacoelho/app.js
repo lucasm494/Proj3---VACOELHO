@@ -147,10 +147,10 @@ function setup(shaders) {
     };
 
     // Data object to manipulate
-    const data = {
+    let data = {
       name: "Bunny",
       position: { x: 0, y: 0, z: 0 },
-      rotation: { x: 0, y: -90, z: 0 },
+      rotation: { x: 0, y: 0, z: 0 },
       scale: { x: 1, y: 1, z: 1 },
       material: {
         shader: "gouraud",
@@ -165,9 +165,9 @@ function setup(shaders) {
     // GUI Folders
     const objectTransform = objectGUI.addFolder("Transform");
     const positionFolder = objectTransform.addFolder("Position");
-    positionFolder.add(data.position, "x", -100, 100, 1).name("X");
-    positionFolder.add(data.position, "y", -100, 100, 1).name("Y");
-    positionFolder.add(data.position, "z", -100, 100, 1).name("Z");
+    positionFolder.add(data.position, "x", -1.5, 1.5, 0.1).name("X");
+    positionFolder.add(data.position, "y", 0, 2, 0.1).name("Y");
+    positionFolder.add(data.position, "z", -1.5, 1.5, 0.1).name("Z");
 
     const rotationFolder = objectTransform.addFolder("Rotation");
     rotationFolder.add(data.rotation, "x", -180, 180, 1).name("X").domElement.style.pointerEvents = "none";
@@ -175,9 +175,9 @@ function setup(shaders) {
     rotationFolder.add(data.rotation, "z", -180, 180, 1).name("Z").domElement.style.pointerEvents = "none";
 
     const scaleFolder = objectTransform.addFolder("Scale");
-    scaleFolder.add(data.scale, "x", 0.1, 5, 0.1).name("X");
-    scaleFolder.add(data.scale, "y", 0.1, 5, 0.1).name("Y");
-    scaleFolder.add(data.scale, "z", 0.1, 5, 0.1).name("Z");
+    scaleFolder.add(data.scale, "x", 0.1, 2, 0.1).name("X");
+    scaleFolder.add(data.scale, "y", 0.1, 2, 0.1).name("Y");
+    scaleFolder.add(data.scale, "z", 0.1, 2, 0.1).name("Z");
 
     const materialFolder = objectGUI.addFolder("Material");
     materialFolder.add(data.material, "shader", ["gouraud", "phong"]).name("Shader");
@@ -361,8 +361,16 @@ function setup(shaders) {
 
     function object() {
         STACK.pushMatrix();
+    
+        // Apply transformations
+        STACK.multTranslation([data.position.x, data.position.y, data.position.z]); // Apply position
+        STACK.multRotationY(data.rotation.y); // Apply rotation on the Y-axis
+        STACK.multScale([data.scale.x, data.scale.y, data.scale.z]); // Apply scale
+        uploadModelView();
+        // Draw the selected object
         const selectedObject = objectMapping[data.name];
         selectedObject.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+    
         STACK.popMatrix();
     }
 
