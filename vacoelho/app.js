@@ -92,19 +92,19 @@ function setup(shaders) {
     });
 
     const eye = cameraGui.addFolder("eye");
-    eye.add(camera.eye, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    eye.add(camera.eye, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    eye.add(camera.eye, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    eye.add(camera.eye, 0).step(0.05).listen().domElement.style.pointerEvents = "none";
+    eye.add(camera.eye, 1).step(0.05).listen().domElement.style.pointerEvents = "none";
+    eye.add(camera.eye, 2).step(0.05).listen().domElement.style.pointerEvents = "none";
 
     const at = cameraGui.addFolder("at");
-    at.add(camera.at, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    at.add(camera.at, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    at.add(camera.at, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    at.add(camera.at, 0).step(0.05).listen().domElement.style.pointerEvents = "none";
+    at.add(camera.at, 1).step(0.05).listen().domElement.style.pointerEvents = "none";
+    at.add(camera.at, 2).step(0.05).listen().domElement.style.pointerEvents = "none";
 
     const up = cameraGui.addFolder("up");
-    up.add(camera.up, 0).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    up.add(camera.up, 1).step(0.05).listen().domElement.style.pointerEvents = "none";;
-    up.add(camera.up, 2).step(0.05).listen().domElement.style.pointerEvents = "none";;
+    up.add(camera.up, 0).step(0.05).listen().domElement.style.pointerEvents = "none";
+    up.add(camera.up, 1).step(0.05).listen().domElement.style.pointerEvents = "none";
+    up.add(camera.up, 2).step(0.05).listen().domElement.style.pointerEvents = "none";
 
     // Lights folder
     const lightsFolder = gui.addFolder("lights");
@@ -170,9 +170,9 @@ function setup(shaders) {
     positionFolder.add(data.position, "z", -100, 100, 1).name("Z");
 
     const rotationFolder = objectTransform.addFolder("Rotation");
-    rotationFolder.add(data.rotation, "x", -180, 180, 1).name("X");
+    rotationFolder.add(data.rotation, "x", -180, 180, 1).name("X").domElement.style.pointerEvents = "none";
     rotationFolder.add(data.rotation, "y", -180, 180, 1).name("Y");
-    rotationFolder.add(data.rotation, "z", -180, 180, 1).name("Z");
+    rotationFolder.add(data.rotation, "z", -180, 180, 1).name("Z").domElement.style.pointerEvents = "none";
 
     const scaleFolder = objectTransform.addFolder("Scale");
     scaleFolder.add(data.scale, "x", 0.1, 5, 0.1).name("X");
@@ -315,24 +315,45 @@ function setup(shaders) {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.useProgram(program);
-
+        
         mView = lookAt(camera.eye, camera.at, camera.up);
         STACK.loadMatrix(mView);
-
+        
         mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
-
 
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_model_view"), false, flatten(STACK.modelView()));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_projection"), false, flatten(mProjection));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
 
         gl.uniform1i(gl.getUniformLocation(program, "u_use_normals"), options.normals);
+        
+        drawFloor();
+        drawObject();
+        
+        
+    }
 
-        // Use the object mapping to call the appropriate draw function
-        const selectedObject = objectMapping[data.name];
-        selectedObject.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+    function drawFloor(){
+        STACK.pushMatrix();
+            STACK.multTranslation([4,0,0]);
+            CUBE.draw(gl,program,gl.TRIANGLES);
+        STACK.popMatrix();
+    }
+
+    function drawObject(){
+        STACK.pushMatrix();
+            STACK.multTranslation([data.position.x,data.position.y,data.position.z]);
+            STACK.multRotationY(data.rotation.y);
+            STACK.multScale([data.scale.x,data.scale.y,data.scale.z]);
+    
+            // Use the object mapping to call the appropriate draw function
+            const selectedObject = objectMapping[data.name];
+            selectedObject.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+        STACK.popMatrix();
     }
 }
+
+
 
 const urls = ['shader.vert', 'shader.frag'];
 
