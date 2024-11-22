@@ -215,7 +215,7 @@ function setup(shaders) {
     let down = false;
     let lastX, lastY;
 
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.5, 0.5, 0.5, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
     resizeCanvasToFullWindow();
@@ -304,7 +304,7 @@ function setup(shaders) {
 
     canvas.addEventListener('mouseup', function (event) {
         down = false;
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor(0.5, 0.5, 0.5, 1.0);
     });
 
     window.addEventListener('keydown', (event) => {
