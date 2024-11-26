@@ -72,7 +72,7 @@ function setup(shaders) {
         ambient: [255, 255, 255], // Ambient color (RGB)
         diffuse: [255, 255, 255], // Diffuse color (RGB)
         specular: [255, 255, 255], // Specular color (RGB)
-        directional: false,
+        directional: true,
         active: true,
         type: 2
         },
