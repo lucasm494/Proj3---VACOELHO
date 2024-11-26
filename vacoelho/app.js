@@ -14,6 +14,7 @@ import * as COW from '../../libs/objects/cow.js';
 import * as STACK from '../../libs/stack.js';
 
 let isAnimating = false;
+let program; // To store the active WebGL program
 
 function setup(shaders) {
     const canvas = document.getElementById('gl-canvas');
@@ -27,7 +28,23 @@ function setup(shaders) {
     BUNNY.init(gl);
     COW.init(gl);
 
-    const program = buildProgramFromSources(gl, shaders['shader.vert'], shaders['shader.frag']);
+    
+
+    // Function to rebuild the program based on the selected shader
+    function updateShaders(gl, shaderType) {
+        let vertexShader = shaderType === "gouraud" ? shaders["gShader.vert"] : shaders["pShader.vert"];
+        const fragmentShader = shaderType === "gouraud" ? shaders["gShader.frag"] : shaders["pShader.frag"];
+        
+        // Build a new program
+        program = buildProgramFromSources(gl, vertexShader, fragmentShader);
+        gl.useProgram(program);
+    }
+
+    // Initialize with the Gouraud shader
+    updateShaders(gl, "gouraud");
+
+
+
 
     // Camera  
     let camera = {
@@ -190,7 +207,10 @@ function setup(shaders) {
     scaleFolder.add(data.scale, "z", 0.1, 2, 0.1).name("Z");
 
     const materialFolder = objectGUI.addFolder("Material");
-    materialFolder.add(data.material, "shader", ["gouraud", "phong"]).name("Shader");
+    // Watch for changes to the shader in the GUI
+    materialFolder.add(data.material, "shader", ["gouraud", "phong"]).name("Shader").onChange(function(newShader) {
+    updateShaders(gl, newShader); // Update shaders dynamically
+    });
 
     // Ambient (Ka) color
     materialFolder.addColor(data.material, "Ka").name("Ka (Ambient)");
@@ -410,31 +430,35 @@ function setup(shaders) {
         STACK.popMatrix();
     }
     
-    function uploadLights(gl, program, lightsData) {
+    function uploadLights(gl, program, lightsData, mView) {
         const activeLights = Object.values(lightsData).filter(light => light.active);
-        
-        // Cap the number of lights to the shader's MAX_LIGHTS limit
-        const numLights = Math.min(activeLights.length, 10);
+        const numLights = Math.min(activeLights.length, 8); // Max lights = 8
     
-        const lightsBuffer = [];
-        activeLights.slice(0, numLights).forEach(light => {
-            const w = light.directional ? 0.0 : 1.0; // Directional or point light
-            lightsBuffer.push(
-                light.position.x, light.position.y, light.position.z, w,
-                light.ambient[0] / 255, light.ambient[1] / 255, light.ambient[2] / 255,
-                light.diffuse[0] / 255, light.diffuse[1] / 255, light.diffuse[2] / 255,
-                light.specular[0] / 255, light.specular[1] / 255, light.specular[2] / 255,
-                light.type  // Add the light type to the buffer
-            );
-        });
-    
-        // Upload the light buffer to the GPU
-        const lightLocation = gl.getUniformLocation(program, "u_light");
-    
+        // Upload the number of active lights
         gl.uniform1i(gl.getUniformLocation(program, "u_n_lights"), numLights);
-        gl.uniform4fv(lightLocation, new Float32Array(lightsBuffer.flat()));
-    }
     
+        // Loop through each light and upload its data
+        for (let i = 0; i < numLights; i++) {
+            const light = activeLights[i];
+    
+            const w = light.directional ? 0.0 : 1.0; // Directional or point light
+            let pos = vec4(light.position.x, light.position.y, light.position.z, w);
+    
+            // Transform light position to camera space
+            pos = mult(mView, pos);
+    
+            // Normalize color values to [0, 1]
+            const ia = [light.ambient[0] / 255, light.ambient[1] / 255, light.ambient[2] / 255];
+            const id = [light.diffuse[0] / 255, light.diffuse[1] / 255, light.diffuse[2] / 255];
+            const is = [light.specular[0] / 255, light.specular[1] / 255, light.specular[2] / 255];
+    
+            // Construct uniform names dynamically
+            gl.uniform4fv(gl.getUniformLocation(program, `u_light[${i}].pos`), pos);
+            gl.uniform3fv(gl.getUniformLocation(program, `u_light[${i}].Ia`), ia);
+            gl.uniform3fv(gl.getUniformLocation(program, `u_light[${i}].Id`), id);
+            gl.uniform3fv(gl.getUniformLocation(program, `u_light[${i}].Is`), is);
+        }
+    }
     
     
     function uploadMaterial(gl, program, material) {
@@ -453,7 +477,7 @@ function setup(shaders) {
 
     function teste(gl, program) {
         
-        const light = lightsData.objectLight;
+        const light = lightsData.cameraLight;
         
         const w = light.directional ? 0.0 : 1.0; // Directional or point light
         
@@ -499,11 +523,13 @@ function setup(shaders) {
         
         // Upload lights and materials
         //uploadLights(gl, program, lightsData);
-        teste(gl,program);
+        //teste(gl,program);
         
         uploadMaterial(gl, program, data.material);
-        uploadLights(gl, program, lightsData);
+        uploadLights(gl, program, lightsData, mView);
 
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_view"), false, flatten(mView));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_view_normals"), false, flatten(normalMatrix(mView)));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_model_view"), false, flatten(STACK.modelView()));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_projection"), false, flatten(mProjection));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
@@ -523,6 +549,6 @@ function setup(shaders) {
     }
 }
 
-const urls = ['shader.vert', 'shader.frag'];
+const urls = ['gShader.vert', 'gShader.frag','pShader.vert','pShader.frag'];
 
 loadShadersFromURLS(urls).then(shaders => setup(shaders));
