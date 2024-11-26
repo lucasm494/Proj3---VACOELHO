@@ -56,6 +56,7 @@ function setup(shaders) {
         specular: [255, 255, 255], // Specular color (RGB)
         directional: false,
         active: true,
+        type: 0
         },
         cameraLight: {
         position: { x: 0, y: 5, z: 5 },
@@ -64,14 +65,16 @@ function setup(shaders) {
         specular: [255, 255, 255], // Specular color (RGB)
         directional: false,
         active: true,
+        type: 1
         },
         objectLight: {
-        position: { x: 0, y: 0, z: 10 },
+        position: { x: 0.2, y: 0.2, z: 1.5 },
         ambient: [255, 255, 255], // Ambient color (RGB)
         diffuse: [255, 255, 255], // Diffuse color (RGB)
         specular: [255, 255, 255], // Specular color (RGB)
         directional: false,
         active: true,
+        type: 2
         },
     };
 
@@ -121,9 +124,9 @@ function setup(shaders) {
     
         // Position folder
         const positionFolder = lightFolder.addFolder("Position");
-        positionFolder.add(lightsData[lightName].position, "x", -50, 50, 1).name("X");
-        positionFolder.add(lightsData[lightName].position, "y", -50, 50, 1).name("Y");
-        positionFolder.add(lightsData[lightName].position, "z", -50, 50, 1).name("Z");
+        positionFolder.add(lightsData[lightName].position, "x", -5, 5, 0.01).name("X").listen();
+        positionFolder.add(lightsData[lightName].position, "y", -5, 5, 0.01).name("Y").listen();
+        positionFolder.add(lightsData[lightName].position, "z", -5, 5, 0.01).name("Z").listen();
 
         positionFolder.open();
     
@@ -172,13 +175,13 @@ function setup(shaders) {
     // GUI Folders
     const objectTransform = objectGUI.addFolder("Transform");
     const positionFolder = objectTransform.addFolder("Position");
-    positionFolder.add(data.position, "x", -1.5, 1.5, 0.1).name("X");
+    positionFolder.add(data.position, "x", -1.5, 1.5, 0.1).name("X").listen();
     positionFolder.add(data.position, "y", 0, 2, 0.1).name("Y").domElement.style.pointerEvents = "none";;
-    positionFolder.add(data.position, "z", -1.5, 1.5, 0.1).name("Z");
+    positionFolder.add(data.position, "z", -1.5, 1.5, 0.1).name("Z").listen();
 
     const rotationFolder = objectTransform.addFolder("Rotation");
     rotationFolder.add(data.rotation, "x", -180, 180, 1).name("X").domElement.style.pointerEvents = "none";
-    rotationFolder.add(data.rotation, "y", -180, 180, 1).name("Y");
+    rotationFolder.add(data.rotation, "y", -180, 180, 0.1).name("Y").listen();   
     rotationFolder.add(data.rotation, "z", -180, 180, 1).name("Z").domElement.style.pointerEvents = "none";
 
     const scaleFolder = objectTransform.addFolder("Scale");
@@ -208,7 +211,6 @@ function setup(shaders) {
     rotationFolder.open();
     scaleFolder.open();
     
-
     // matrices
     let mView, mProjection;
 
@@ -337,10 +339,14 @@ function setup(shaders) {
 
     function base() {
         STACK.pushMatrix();
+
         STACK.multTranslation([0, -0.6, 0]);
         STACK.multScale([4, 0.05, 4]);
         uploadModelView();
+
+        gl.uniform3fv(gl.getUniformLocation(program, 'baseColor'), [1.0,0.5,0.3]);
         CUBE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+        
         STACK.popMatrix();
     }
 
@@ -348,8 +354,6 @@ function setup(shaders) {
         STACK.pushMatrix();
     
         // Apply transformations
-        STACK.multTranslation([data.position.x, data.position.y, data.position.z]); // Apply position
-        STACK.multRotationY(data.rotation.y); // Apply rotation on the Y-axis
         STACK.multScale([data.scale.x, data.scale.y, data.scale.z]); // Apply scale
         uploadModelView();
         // Draw the selected object
@@ -357,6 +361,33 @@ function setup(shaders) {
         selectedObject.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
     
         STACK.popMatrix();
+    }
+
+    function objectLight() {
+        STACK.pushMatrix();
+    
+        // Apply transformations
+        STACK.multTranslation([lightsData.objectLight.position.x, lightsData.objectLight.position.y, lightsData.objectLight.position.z]); // Apply position
+        STACK.multScale([0.1, 0.1, 0.1]); // Apply scale
+        uploadModelView();
+        // Draw the selected object
+        SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+    
+        STACK.popMatrix();
+    }
+
+    function objectWithLight() {
+        STACK.pushMatrix();
+    
+        // Apply transformations
+        STACK.multTranslation([data.position.x, data.position.y, data.position.z]); // Apply position
+        STACK.multRotationY(data.rotation.y); // Apply rotation on the Y-axis
+        uploadModelView();
+
+        object();
+        objectLight();
+
+        STACK.popMatrix();        
     }
 
     function animateObject(time) {
@@ -374,12 +405,69 @@ function setup(shaders) {
         STACK.multScale([data.scale.x, data.scale.y, data.scale.z]);
         uploadModelView();
     
-        const selectedObject = objectMapping[data.name];
-        selectedObject.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+        objectWithLight();
     
         STACK.popMatrix();
     }
     
+    function uploadLights(gl, program, lightsData) {
+        const activeLights = Object.values(lightsData).filter(light => light.active);
+        
+        // Cap the number of lights to the shader's MAX_LIGHTS limit
+        const numLights = Math.min(activeLights.length, 10);
+    
+        const lightsBuffer = [];
+        activeLights.slice(0, numLights).forEach(light => {
+            const w = light.directional ? 0.0 : 1.0; // Directional or point light
+            lightsBuffer.push(
+                light.position.x, light.position.y, light.position.z, w,
+                light.ambient[0] / 255, light.ambient[1] / 255, light.ambient[2] / 255,
+                light.diffuse[0] / 255, light.diffuse[1] / 255, light.diffuse[2] / 255,
+                light.specular[0] / 255, light.specular[1] / 255, light.specular[2] / 255,
+                light.type  // Add the light type to the buffer
+            );
+        });
+    
+        // Upload the light buffer to the GPU
+        const lightLocation = gl.getUniformLocation(program, "u_light");
+    
+        gl.uniform1i(gl.getUniformLocation(program, "u_n_lights"), numLights);
+        gl.uniform4fv(lightLocation, new Float32Array(lightsBuffer.flat()));
+    }
+    
+    
+    
+    function uploadMaterial(gl, program, material) {
+        
+        const materialAmb = [material.Ka[0] / 255, material.Ka[1] / 255, material.Ka[2] / 255] // Ambient (vec3)
+        const materialDif = [material.Kd[0] / 255, material.Kd[1] / 255, material.Kd[2] / 255] // Diffuse (vec3)
+        const materialSpe = [material.Ks[0] / 255, material.Ks[1] / 255, material.Ks[2] / 255] // Specular (vec3)
+            
+    
+        // Skip the block index and binding block steps
+        gl.uniform3fv(gl.getUniformLocation(program, "u_material.Ka"), materialAmb);
+        gl.uniform3fv(gl.getUniformLocation(program, "u_material.Kd"), materialDif);
+        gl.uniform3fv(gl.getUniformLocation(program, "u_material.Ks"), materialSpe);
+        gl.uniform1f(gl.getUniformLocation(program, "u_material.shininess"), material.shininess);
+    }
+
+    function teste(gl, program) {
+        
+        const light = lightsData.objectLight;
+        
+        const w = light.directional ? 0.0 : 1.0; // Directional or point light
+        
+        const pos = [light.position.x, light.position.y, light.position.z, w];
+        const ia = [light.ambient[0] / 255, light.ambient[1] / 255, light.ambient[2] / 255];
+        const id =  [light.diffuse[0] / 255, light.diffuse[1] / 255, light.diffuse[2] / 255];
+        const is = [light.specular[0] / 255, light.specular[1] / 255, light.specular[2] / 255];
+        
+    
+        gl.uniform4fv(gl.getUniformLocation(program, "u_light.pos"), pos);
+        gl.uniform3fv(gl.getUniformLocation(program, "u_light.Ia"), ia);
+        gl.uniform3fv(gl.getUniformLocation(program, "u_light.Id"), id);
+        gl.uniform3fv(gl.getUniformLocation(program, "u_light.Is"), is);
+    } 
 
     function render(time) {
         window.requestAnimationFrame(render);
@@ -408,13 +496,21 @@ function setup(shaders) {
         
         mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
 
+        
+        // Upload lights and materials
+        //uploadLights(gl, program, lightsData);
+        teste(gl,program);
+        
+        uploadMaterial(gl, program, data.material);
+        uploadLights(gl, program, lightsData);
+
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_model_view"), false, flatten(STACK.modelView()));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_projection"), false, flatten(mProjection));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
 
         gl.uniform1i(gl.getUniformLocation(program, "u_use_normals"), options.normals);
 
-            // Draw the base
+        // Draw the base
         base();
 
         // Animate the object if the flag is active
@@ -422,12 +518,10 @@ function setup(shaders) {
             animateObject(time);
         } else {
             // Draw the object in its current static position
-            object();
+            objectWithLight();
         }
     }
 }
-
-
 
 const urls = ['shader.vert', 'shader.frag'];
 

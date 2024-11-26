@@ -76,9 +76,11 @@ void main() {
         vec3 L; // Light direction vector
         
         // Camera space light: transform position into camera space
-        vec4 lightPosCamera = u_model_view * u_light.pos;
-        L = normalize(lightPosCamera.xyz - posC);
-        
+        if (u_light.pos.w == 0.0) { // Directional light
+            L = normalize((u_model_view * u_light.pos).xyz);
+        } else { // Point light
+            L = normalize((u_model_view * u_light.pos).xyz - posC);
+        }
 
         // Diffuse and specular shading
         float diffuseFactor = max(dot(L, N), 0.0);
@@ -95,7 +97,7 @@ void main() {
         accumulatedSpecular += specularColor;
 
     // Final color computation
-    vec3 finalColor = baseColor + accumulatedAmbient + accumulatedDiffuse + accumulatedSpecular;
+    vec3 finalColor = (baseColor * accumulatedAmbient) + accumulatedDiffuse + accumulatedSpecular;
 
     gl_Position = u_projection * u_model_view * a_position;
     fColor = vec4(finalColor, 1.0);
