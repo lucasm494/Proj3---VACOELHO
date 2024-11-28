@@ -485,7 +485,13 @@ function setup(shaders) {
     
         STACK.popMatrix();
     }
-    
+
+    function updateCameraLightPosition() {
+        lightsData.cameraLight.position.x = camera.eye[0];
+        lightsData.cameraLight.position.y = camera.eye[1];
+        lightsData.cameraLight.position.z = camera.eye[2];
+    }    
+
     function uploadLights(gl, program, lightsData, mView) {
         const activeLights = Object.values(lightsData).filter(light => light.active);
         const numLights = Math.min(activeLights.length, 8); // Max lights = 8
