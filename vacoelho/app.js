@@ -178,8 +178,8 @@ function setup(shaders) {
       material: {
         shader: "gouraud",
         Ka: [14, 52, 25], // Ambient color (RGB, a darker grey for ambient lighting)
-        Kd: [0, 0, 0], // Diffuse color (RGB, a neutral mid-grey)
-        Ks: [255, 255, 255], // Specular color (RGB, a brighter grey for highlights)
+        Kd: [69, 100, 15], // Diffuse color (RGB, a neutral mid-grey)
+        Ks: [114, 114, 114], // Specular color (RGB, a brighter grey for highlights)
 
         shininess: 100,
       },
@@ -415,7 +415,7 @@ function setup(shaders) {
     
         // Apply transformations
         STACK.multTranslation([lightsData.objectLight.position.x, lightsData.objectLight.position.y, lightsData.objectLight.position.z]); // Apply position
-        STACK.multScale([0.1, 0.1, 0.1]); // Apply scale
+        STACK.multScale([0.05, 0.05, 0.05]); // Apply scale
         uploadModelView();
         // Draw the selected object
         uploadMaterial(gl,program,objectLightMaterial);
@@ -429,7 +429,7 @@ function setup(shaders) {
     
         // Apply transformations
         STACK.multTranslation([lightsData.worldLight.position.x, lightsData.worldLight.position.y, lightsData.worldLight.position.z]); // Apply position
-        STACK.multScale([0.1, 0.1, 0.1]); // Apply scale
+        STACK.multScale([0.05, 0.05, 0.05]); // Apply scale
         uploadModelView();
         // Draw the selected object
         uploadMaterial(gl,program,worldLightMaterial);
@@ -443,7 +443,7 @@ function setup(shaders) {
         STACK.loadIdentity();
         // Apply transformations
         STACK.multTranslation([lightsData.cameraLight.position.x, lightsData.cameraLight.position.y, lightsData.cameraLight.position.z]); // Apply position
-        STACK.multScale([0.1, 0.1, 0.1]); // Apply scale
+        STACK.multScale([0.05, 0.05, 0.05]); // Apply scale
         uploadModelView();
         // Draw the selected object
         uploadMaterial(gl,program,cameraLightMaterial);
@@ -471,7 +471,7 @@ function setup(shaders) {
     
         const amplitude = 1;
         const frequency = 0.002;
-        const yPosition = amplitude + Math.sin(frequency * time);
+        const yPosition = 0.45 * (amplitude + Math.sin(frequency * time));
     
         const rotationSpeed = 0.05;
         const yRotation = (time * rotationSpeed) % 360;
