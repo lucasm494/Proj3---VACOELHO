@@ -2,7 +2,6 @@
 
 in vec4 a_position;
 in vec3 a_normal;
-uniform vec3 baseColor; // Uniform for the base color
 
 uniform mat4 u_projection;
 uniform mat4 u_model_view;   // Model-view matrix (camera space)
