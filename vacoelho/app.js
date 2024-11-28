@@ -396,6 +396,32 @@ function setup(shaders) {
         STACK.popMatrix();
     }
 
+    function worldLight() {
+        STACK.pushMatrix();
+    
+        // Apply transformations
+        STACK.multTranslation([lightsData.worldLight.position.x, lightsData.worldLight.position.y, lightsData.worldLight.position.z]); // Apply position
+        STACK.multScale([0.1, 0.1, 0.1]); // Apply scale
+        uploadModelView();
+        // Draw the selected object
+        SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+    
+        STACK.popMatrix();
+    }
+
+    function cameraLight() {
+        STACK.pushMatrix();
+    
+        // Apply transformations
+        STACK.multTranslation([lightsData.cameraLight.position.x, lightsData.cameraLight.position.y, lightsData.cameraLight.position.z]); // Apply position
+        STACK.multScale([0.1, 0.1, 0.1]); // Apply scale
+        uploadModelView();
+        // Draw the selected object
+        SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+    
+        STACK.popMatrix();
+    }
+
     function objectWithLight() {
         STACK.pushMatrix();
     
@@ -406,7 +432,7 @@ function setup(shaders) {
 
         object();
         objectLight();
-
+        
         STACK.popMatrix();        
     }
 
@@ -475,24 +501,6 @@ function setup(shaders) {
         gl.uniform1f(gl.getUniformLocation(program, "u_material.shininess"), material.shininess);
     }
 
-    function teste(gl, program) {
-        
-        const light = lightsData.cameraLight;
-        
-        const w = light.directional ? 0.0 : 1.0; // Directional or point light
-        
-        const pos = [light.position.x, light.position.y, light.position.z, w];
-        const ia = [light.ambient[0] / 255, light.ambient[1] / 255, light.ambient[2] / 255];
-        const id =  [light.diffuse[0] / 255, light.diffuse[1] / 255, light.diffuse[2] / 255];
-        const is = [light.specular[0] / 255, light.specular[1] / 255, light.specular[2] / 255];
-        
-    
-        gl.uniform4fv(gl.getUniformLocation(program, "u_light.pos"), pos);
-        gl.uniform3fv(gl.getUniformLocation(program, "u_light.Ia"), ia);
-        gl.uniform3fv(gl.getUniformLocation(program, "u_light.Id"), id);
-        gl.uniform3fv(gl.getUniformLocation(program, "u_light.Is"), is);
-    } 
-
     function render(time) {
         window.requestAnimationFrame(render);
 
@@ -538,6 +546,8 @@ function setup(shaders) {
 
         // Draw the base
         base();
+        worldLight();
+        cameraLight();
 
         // Animate the object if the flag is active
         if (isAnimating) {
