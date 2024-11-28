@@ -43,9 +43,6 @@ function setup(shaders) {
     // Initialize with the Gouraud shader
     updateShaders(gl, "gouraud");
 
-
-
-
     // Camera  
     let camera = {
         eye: vec3(0, 0, 5),
@@ -188,6 +185,33 @@ function setup(shaders) {
       },
       animate: false
     };
+
+    let baseMaterial= {
+        Ka: [52, 21, 0], // Ambient color (RGB, a darker grey for ambient lighting)
+        Kd: [137, 129, 111], // Diffuse color (RGB, a neutral mid-grey)
+        Ks: [0, 0, 0], // Specular color (RGB, a brighter grey for highlights)
+
+        shininess: 50,
+    };
+
+    let worldLightMaterial={
+        Ka: lightsData.worldLight.diffuse,
+        Kd: lightsData.worldLight.diffuse,
+        Ks: lightsData.worldLight.diffuse,
+        shininess: 50,
+    }
+    let cameraLightMaterial={
+        Ka: lightsData.cameraLight.diffuse,
+        Kd: lightsData.cameraLight.diffuse,
+        Ks: lightsData.cameraLight.diffuse,
+        shininess: 50,
+    }
+    let objectLightMaterial={
+        Ka: lightsData.objectLight.diffuse,
+        Kd: lightsData.objectLight.diffuse,
+        Ks: lightsData.objectLight.diffuse,
+        shininess: 50,
+    }
 
     objectGUI.add(data, "name",["Bunny","Cow","Sphere","Cylinder","Cube","Pyramid","Torus"]).name("Name");
     // GUI Folders
@@ -365,7 +389,9 @@ function setup(shaders) {
         STACK.multScale([4, 0.05, 4]);
         uploadModelView();
 
-        gl.uniform3fv(gl.getUniformLocation(program, 'baseColor'), [1.0,0.5,0.3]);
+        
+
+        uploadMaterial(gl,program,baseMaterial)
         CUBE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
         
         STACK.popMatrix();
@@ -392,6 +418,7 @@ function setup(shaders) {
         STACK.multScale([0.1, 0.1, 0.1]); // Apply scale
         uploadModelView();
         // Draw the selected object
+        uploadMaterial(gl,program,objectLightMaterial);
         SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
     
         STACK.popMatrix();
@@ -405,6 +432,7 @@ function setup(shaders) {
         STACK.multScale([0.1, 0.1, 0.1]); // Apply scale
         uploadModelView();
         // Draw the selected object
+        uploadMaterial(gl,program,worldLightMaterial);
         SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
     
         STACK.popMatrix();
@@ -412,12 +440,13 @@ function setup(shaders) {
 
     function cameraLight() {
         STACK.pushMatrix();
-    
+        STACK.loadIdentity();
         // Apply transformations
         STACK.multTranslation([lightsData.cameraLight.position.x, lightsData.cameraLight.position.y, lightsData.cameraLight.position.z]); // Apply position
         STACK.multScale([0.1, 0.1, 0.1]); // Apply scale
         uploadModelView();
         // Draw the selected object
+        uploadMaterial(gl,program,cameraLightMaterial);
         SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
     
         STACK.popMatrix();
@@ -527,15 +556,7 @@ function setup(shaders) {
         mView = lookAt(camera.eye, camera.at, camera.up);
         STACK.loadMatrix(mView);
         
-        mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
-
-        
-        // Upload lights and materials
-        //uploadLights(gl, program, lightsData);
-        //teste(gl,program);
-        
-        uploadMaterial(gl, program, data.material);
-        uploadLights(gl, program, lightsData, mView);
+        mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);        
 
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_view"), false, flatten(mView));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_view_normals"), false, flatten(normalMatrix(mView)));
@@ -547,8 +568,11 @@ function setup(shaders) {
 
         // Draw the base
         base();
+
         worldLight();
         cameraLight();
+        //uploadMaterial of the object
+        uploadMaterial(gl, program, data.material);
 
         // Animate the object if the flag is active
         if (isAnimating) {
@@ -557,6 +581,11 @@ function setup(shaders) {
             // Draw the object in its current static position
             objectWithLight();
         }
+        
+        //uploadLights
+        uploadLights(gl, program, lightsData, mView);
+        
+        
     }
 }
 
