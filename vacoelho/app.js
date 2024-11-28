@@ -67,7 +67,7 @@ function setup(shaders) {
     // Data structure for lights
     let lightsData = {
         worldLight: {
-        position: { x: 0, y: 10, z: 0 },
+        position: { x: 0, y: 1.5, z: 0 },
         ambient: [255, 255, 255], // Ambient color (RGB)
         diffuse: [255, 255, 255], // Diffuse color (RGB)
         specular: [255, 255, 255], // Specular color (RGB)
@@ -76,7 +76,7 @@ function setup(shaders) {
         type: 0
         },
         cameraLight: {
-        position: { x: 0, y: 5, z: 5 },
+        position: { x: camera.eye[0], y: camera.eye[1], z: camera.eye[2] },
         ambient: [255, 255, 255], // Ambient color (RGB)
         diffuse: [255, 255, 255], // Diffuse color (RGB)
         specular: [255, 255, 255], // Specular color (RGB)
@@ -85,7 +85,7 @@ function setup(shaders) {
         type: 1
         },
         objectLight: {
-        position: { x: 0.2, y: 0.2, z: 1.5 },
+        position: { x: 0.2, y: 0.3, z: 1 },
         ambient: [255, 255, 255], // Ambient color (RGB)
         diffuse: [255, 255, 255], // Diffuse color (RGB)
         specular: [255, 255, 255], // Specular color (RGB)
@@ -174,15 +174,16 @@ function setup(shaders) {
 
     // Data object to manipulate
     let data = {
-      name: "Bunny",
+      name: "Sphere",
       position: { x: 0, y: 0, z: 0 },
       rotation: { x: 0, y: 0, z: 0 },
       scale: { x: 1, y: 1, z: 1 },
       material: {
         shader: "gouraud",
-        Ka: [31, 66, 142], // Ambient color (RGB)
-        Kd: [50, 152, 247], // Diffuse color (RGB)
-        Ks: [255, 255, 255], // Specular color (RGB)
+        Ka: [14, 52, 25], // Ambient color (RGB, a darker grey for ambient lighting)
+        Kd: [0, 0, 0], // Diffuse color (RGB, a neutral mid-grey)
+        Ks: [255, 255, 255], // Specular color (RGB, a brighter grey for highlights)
+
         shininess: 100,
       },
       animate: false
