@@ -2,7 +2,6 @@ import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from '../../
 import { length, flatten, inverse, mult, normalMatrix, perspective, lookAt, vec4, vec3, vec2, subtract, add, scale, rotate, normalize } from '../../libs/MV.js';
 
 import * as dat from '../../libs/dat.gui.module.js';
-
 import * as CUBE from '../../libs/objects/cube.js';
 import * as SPHERE from '../../libs/objects/sphere.js';
 import * as CYLINDER from '../../libs/objects/cylinder.js';
@@ -10,7 +9,6 @@ import * as PYRAMID from '../../libs/objects/pyramid.js';
 import * as TORUS from '../../libs/objects/torus.js';
 import * as BUNNY from '../../libs/objects/bunny.js';
 import * as COW from '../../libs/objects/cow.js';
-
 import * as STACK from '../../libs/stack.js';
 
 let isAnimating = false;
@@ -28,16 +26,18 @@ function setup(shaders) {
     BUNNY.init(gl);
     COW.init(gl);
 
+    const miniProgram = buildProgramFromSources(gl, shaders["miniShader.vert"],shaders["miniShader.frag"] );
+    gl.useProgram(miniProgram);
     
-
     // Function to rebuild the program based on the selected shader
     function updateShaders(gl, shaderType) {
-        let vertexShader = shaderType === "gouraud" ? shaders["gShader.vert"] : shaders["pShader.vert"];
+        const vertexShader = shaderType === "gouraud" ? shaders["gShader.vert"] : shaders["pShader.vert"];
         const fragmentShader = shaderType === "gouraud" ? shaders["gShader.frag"] : shaders["pShader.frag"];
         
         // Build a new program
         program = buildProgramFromSources(gl, vertexShader, fragmentShader);
         gl.useProgram(program);
+
     }
 
     // Initialize with the Gouraud shader
@@ -73,7 +73,7 @@ function setup(shaders) {
         type: 0
         },
         cameraLight: {
-        position: { x: camera.eye[0], y: camera.eye[1], z: camera.eye[2] },
+        position: { x: 0, y: 0, z: 0 },
         ambient: [255, 255, 255], // Ambient color (RGB)
         diffuse: [255, 255, 255], // Diffuse color (RGB)
         specular: [255, 255, 255], // Specular color (RGB)
@@ -187,31 +187,12 @@ function setup(shaders) {
     };
 
     let baseMaterial= {
-        Ka: [52, 21, 0], // Ambient color (RGB, a darker grey for ambient lighting)
-        Kd: [137, 129, 111], // Diffuse color (RGB, a neutral mid-grey)
-        Ks: [0, 0, 0], // Specular color (RGB, a brighter grey for highlights)
+        Ka: [0,0,0], // Ambient color (RGB, a darker grey for ambient lighting)
+        Kd: [107,82,68], // Diffuse color (RGB, a neutral mid-grey)
+        Ks: [0,0,0], // Specular color (RGB, a brighter grey for highlights)
 
         shininess: 50,
     };
-
-    let worldLightMaterial={
-        Ka: lightsData.worldLight.diffuse,
-        Kd: lightsData.worldLight.diffuse,
-        Ks: lightsData.worldLight.diffuse,
-        shininess: 50,
-    }
-    let cameraLightMaterial={
-        Ka: lightsData.cameraLight.diffuse,
-        Kd: lightsData.cameraLight.diffuse,
-        Ks: lightsData.cameraLight.diffuse,
-        shininess: 50,
-    }
-    let objectLightMaterial={
-        Ka: lightsData.objectLight.diffuse,
-        Kd: lightsData.objectLight.diffuse,
-        Ks: lightsData.objectLight.diffuse,
-        shininess: 50,
-    }
 
     objectGUI.add(data, "name",["Bunny","Cow","Sphere","Cylinder","Cube","Pyramid","Torus"]).name("Name");
     // GUI Folders
@@ -270,8 +251,6 @@ function setup(shaders) {
     window.addEventListener('resize', resizeCanvasToFullWindow);
 
     window.addEventListener('wheel', function (event) {
-
-
         if (!event.shiftKey && !event.metaKey ) { // Change fovy
             const factor = 1 - event.deltaY / 1000;
             camera.fovy = Math.max(1, Math.min(100, camera.fovy * factor));
@@ -359,7 +338,6 @@ function setup(shaders) {
             isAnimating = !isAnimating; // Toggle animation state
         }
     });
-    
 
     window.requestAnimationFrame(render);
 
@@ -376,7 +354,6 @@ function setup(shaders) {
         const modelViewMatrix = STACK.modelView(); // Get the current top matrix from the stack
         uploadMatrix("u_model_view", modelViewMatrix);
     }
-    
 
     function uploadMatrix(name, m) {
         gl.uniformMatrix4fv(gl.getUniformLocation(program, name), false, flatten(m));
@@ -389,8 +366,6 @@ function setup(shaders) {
         STACK.multScale([4, 0.05, 4]);
         uploadModelView();
 
-        
-
         uploadMaterial(gl,program,baseMaterial)
         CUBE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
         
@@ -399,7 +374,7 @@ function setup(shaders) {
 
     function object() {
         STACK.pushMatrix();
-    
+        
         // Apply transformations
         STACK.multScale([data.scale.x, data.scale.y, data.scale.z]); // Apply scale
         uploadModelView();
@@ -410,49 +385,96 @@ function setup(shaders) {
         STACK.popMatrix();
     }
 
-    function objectLight() {
+    function worldLight(mProjection) {
         STACK.pushMatrix();
-    
-        // Apply transformations
-        STACK.multTranslation([lightsData.objectLight.position.x, lightsData.objectLight.position.y, lightsData.objectLight.position.z]); // Apply position
-        STACK.multScale([0.05, 0.05, 0.05]); // Apply scale
+        STACK.multTranslation([lightsData.worldLight.position.x, lightsData.worldLight.position.y, lightsData.worldLight.position.z]);
+        STACK.multScale([0.05, 0.05, 0.05]);
         uploadModelView();
-        // Draw the selected object
-        uploadMaterial(gl,program,objectLightMaterial);
-        SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+        
+        let corR = lightsData.worldLight.diffuse[0] / 255;
+        let corG = lightsData.worldLight.diffuse[1] / 255;
+        let corB = lightsData.worldLight.diffuse[2] / 255;
+        let cor = [corR,corG,corB];
+
+        // Use the miniShader program
+        gl.useProgram(miniProgram);
+
+        // Set the uniform for the color
+        const colorLocation = gl.getUniformLocation(miniProgram, 'uColor');
+        gl.uniform3fv(colorLocation, cor);
     
+        // Set the uniform for the ModelView and Projection matrices
+        const modelViewLocation = gl.getUniformLocation(miniProgram, 'uModelViewMatrix');
+        gl.uniformMatrix4fv(modelViewLocation, false, flatten(STACK.modelView()));
+    
+        const projectionLocation = gl.getUniformLocation(miniProgram, 'uProjectionMatrix');
+        gl.uniformMatrix4fv(projectionLocation, false, flatten(mProjection));
+    
+        // Draw the sphere
+        SPHERE.draw(gl, miniProgram, options.wireframe ? gl.LINES : gl.TRIANGLES);
+    
+        gl.useProgram(program); // Unbind the shader program
         STACK.popMatrix();
     }
-
-    function worldLight() {
-        STACK.pushMatrix();
     
-        // Apply transformations
-        STACK.multTranslation([lightsData.worldLight.position.x, lightsData.worldLight.position.y, lightsData.worldLight.position.z]); // Apply position
-        STACK.multScale([0.05, 0.05, 0.05]); // Apply scale
-        uploadModelView();
-        // Draw the selected object
-        uploadMaterial(gl,program,worldLightMaterial);
-        SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
-    
-        STACK.popMatrix();
-    }
-
-    function cameraLight() {
+    function cameraLight(mProjection) {
         STACK.pushMatrix();
         STACK.loadIdentity();
-        // Apply transformations
-        STACK.multTranslation([lightsData.cameraLight.position.x, lightsData.cameraLight.position.y, lightsData.cameraLight.position.z]); // Apply position
-        STACK.multScale([0.05, 0.05, 0.05]); // Apply scale
+        STACK.multTranslation([lightsData.cameraLight.position.x, lightsData.cameraLight.position.y, lightsData.cameraLight.position.z]);
+        STACK.multScale([0.05, 0.05, 0.05]);
         uploadModelView();
-        // Draw the selected object
-        uploadMaterial(gl,program,cameraLightMaterial);
-        SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+
+        let corR = lightsData.cameraLight.diffuse[0] / 255;
+        let corG = lightsData.cameraLight.diffuse[1] / 255;
+        let corB = lightsData.cameraLight.diffuse[2] / 255;
+        let cor = [corR,corG,corB];
     
+        gl.useProgram(miniProgram);
+    
+        const colorLocation = gl.getUniformLocation(miniProgram, 'uColor');
+        gl.uniform3fv(colorLocation, cor);
+    
+        const modelViewLocation = gl.getUniformLocation(miniProgram, 'uModelViewMatrix');
+        gl.uniformMatrix4fv(modelViewLocation, false, flatten(STACK.modelView()));
+    
+        const projectionLocation = gl.getUniformLocation(miniProgram, 'uProjectionMatrix');
+        gl.uniformMatrix4fv(projectionLocation, false, flatten(mProjection));
+    
+        SPHERE.draw(gl, miniProgram, options.wireframe ? gl.LINES : gl.TRIANGLES);
+    
+        gl.useProgram(program);
         STACK.popMatrix();
     }
+    
+    function objectLight(mProjection) {
+        STACK.pushMatrix();
+        STACK.multTranslation([lightsData.objectLight.position.x, lightsData.objectLight.position.y, lightsData.objectLight.position.z]);
+        STACK.multScale([0.05, 0.05, 0.05]);
+        uploadModelView();
 
-    function objectWithLight() {
+        let corR = lightsData.objectLight.diffuse[0] / 255;
+        let corG = lightsData.objectLight.diffuse[1] / 255;
+        let corB = lightsData.objectLight.diffuse[2] / 255;
+        let cor = [corR,corG,corB];
+    
+        gl.useProgram(miniProgram);
+    
+        const colorLocation = gl.getUniformLocation(miniProgram, 'uColor');
+        gl.uniform3fv(colorLocation, cor);
+    
+        const modelViewLocation = gl.getUniformLocation(miniProgram, 'uModelViewMatrix');
+        gl.uniformMatrix4fv(modelViewLocation, false, flatten(STACK.modelView()));
+    
+        const projectionLocation = gl.getUniformLocation(miniProgram, 'uProjectionMatrix');
+        gl.uniformMatrix4fv(projectionLocation, false, flatten(mProjection));
+    
+        SPHERE.draw(gl, miniProgram, options.wireframe ? gl.LINES : gl.TRIANGLES);
+    
+        gl.useProgram(program);
+        STACK.popMatrix();
+    }
+    
+    function objectWithLight(mProjection) {
         STACK.pushMatrix();
     
         // Apply transformations
@@ -461,7 +483,7 @@ function setup(shaders) {
         uploadModelView();
 
         object();
-        objectLight();
+        objectLight(mProjection);
         
         STACK.popMatrix();        
     }
@@ -506,8 +528,10 @@ function setup(shaders) {
             const w = light.directional ? 0.0 : 1.0; // Directional or point light
             let pos = vec4(light.position.x, light.position.y, light.position.z, w);
     
-            // Transform light position to camera space
-            pos = mult(mView, pos);
+            if(light.type != 1){
+                // Transform light position to camera space
+                pos = mult(mView, pos);
+            }
     
             // Normalize color values to [0, 1]
             const ia = [light.ambient[0] / 255, light.ambient[1] / 255, light.ambient[2] / 255];
@@ -521,7 +545,6 @@ function setup(shaders) {
             gl.uniform3fv(gl.getUniformLocation(program, `u_light[${i}].Is`), is);
         }
     }
-    
     
     function uploadMaterial(gl, program, material) {
         
@@ -575,8 +598,8 @@ function setup(shaders) {
         // Draw the base
         base();
 
-        worldLight();
-        cameraLight();
+        worldLight(mProjection);
+        cameraLight(mProjection);
         //uploadMaterial of the object
         uploadMaterial(gl, program, data.material);
 
@@ -585,7 +608,7 @@ function setup(shaders) {
             animateObject(time);
         } else {
             // Draw the object in its current static position
-            objectWithLight();
+            objectWithLight(mProjection);
         }
         
         //uploadLights
@@ -595,6 +618,6 @@ function setup(shaders) {
     }
 }
 
-const urls = ['gShader.vert', 'gShader.frag','pShader.vert','pShader.frag'];
+const urls = ['gShader.vert', 'gShader.frag','pShader.vert','pShader.frag','miniShader.vert','miniShader.frag'];
 
 loadShadersFromURLS(urls).then(shaders => setup(shaders));
