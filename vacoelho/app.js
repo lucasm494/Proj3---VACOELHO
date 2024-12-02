@@ -26,14 +26,14 @@ function setup(shaders) {
     BUNNY.init(gl);
     COW.init(gl);
 
-    const miniProgram = buildProgramFromSources(gl, shaders["miniShader.vert"],shaders["miniShader.frag"] );
+    const miniProgram = buildProgramFromSources(gl, shaders["miniShader.vert"], shaders["miniShader.frag"]);
     gl.useProgram(miniProgram);
-    
+
     // Function to rebuild the program based on the selected shader
     function updateShaders(gl, shaderType) {
         const vertexShader = shaderType === "gouraud" ? shaders["gShader.vert"] : shaders["pShader.vert"];
         const fragmentShader = shaderType === "gouraud" ? shaders["gShader.frag"] : shaders["pShader.frag"];
-        
+
         // Build a new program
         program = buildProgramFromSources(gl, vertexShader, fragmentShader);
         gl.useProgram(program);
@@ -57,44 +57,44 @@ function setup(shaders) {
     let options = {
         wireframe: false,
         normals: true,
-        backfaceCulling:true,
+        backfaceCulling: true,
         zBuffer: true
     }
 
     // Data structure for lights
     let lightsData = {
         worldLight: {
-        position: { x: 0, y: 1.5, z: 0 },
-        ambient: [255, 255, 255], // Ambient color (RGB)
-        diffuse: [255, 255, 255], // Diffuse color (RGB)
-        specular: [255, 255, 255], // Specular color (RGB)
-        directional: false,
-        active: true,
-        type: 0
+            position: { x: 0, y: 1.5, z: 0 },
+            ambient: [255, 255, 255], // Ambient color (RGB)
+            diffuse: [255, 255, 255], // Diffuse color (RGB)
+            specular: [255, 255, 255], // Specular color (RGB)
+            directional: false,
+            active: true,
+            type: 0
         },
         cameraLight: {
-        position: { x: 0, y: 0, z: 0 },
-        ambient: [255, 255, 255], // Ambient color (RGB)
-        diffuse: [255, 255, 255], // Diffuse color (RGB)
-        specular: [255, 255, 255], // Specular color (RGB)
-        directional: false,
-        active: true,
-        type: 1
+            position: { x: 0, y: 0, z: 0 },
+            ambient: [255, 255, 255], // Ambient color (RGB)
+            diffuse: [255, 255, 255], // Diffuse color (RGB)
+            specular: [255, 255, 255], // Specular color (RGB)
+            directional: false,
+            active: true,
+            type: 1
         },
         objectLight: {
-        position: { x: 0.2, y: 0.3, z: 1 },
-        ambient: [255, 255, 255], // Ambient color (RGB)
-        diffuse: [255, 255, 255], // Diffuse color (RGB)
-        specular: [255, 255, 255], // Specular color (RGB)
-        directional: true,
-        active: true,
-        type: 2
+            position: { x: 0.2, y: 0.3, z: 1 },
+            ambient: [255, 255, 255], // Ambient color (RGB)
+            diffuse: [255, 255, 255], // Diffuse color (RGB)
+            specular: [255, 255, 255], // Specular color (RGB)
+            directional: true,
+            active: true,
+            type: 2
         },
     };
 
     const gui = new dat.GUI();
     gui.domElement.id = "ligths-gui";
-    
+
     const optionsGui = gui.addFolder("options");
     optionsGui.add(options, "wireframe");
     optionsGui.add(options, "normals");
@@ -131,11 +131,11 @@ function setup(shaders) {
 
     // Lights folder
     const lightsFolder = gui.addFolder("lights");
-    
+
     // Add a subfolder for each light
     ["worldLight", "cameraLight", "objectLight"].forEach((lightName) => {
         const lightFolder = lightsFolder.addFolder(`${lightName.replace("Light", " Light")}`);
-    
+
         // Position folder
         const positionFolder = lightFolder.addFolder("Position");
         positionFolder.add(lightsData[lightName].position, "x", -5, 5, 0.01).name("X").listen();
@@ -143,12 +143,12 @@ function setup(shaders) {
         positionFolder.add(lightsData[lightName].position, "z", -5, 5, 0.01).name("Z").listen();
 
         positionFolder.open();
-    
+
         // Color pickers
         lightFolder.addColor(lightsData[lightName], "ambient").name("Ambient");
         lightFolder.addColor(lightsData[lightName], "diffuse").name("Diffuse");
         lightFolder.addColor(lightsData[lightName], "specular").name("Specular");
-    
+
         // Directional and Active checkboxes
         lightFolder.add(lightsData[lightName], "directional").name("Directional");
         lightFolder.add(lightsData[lightName], "active").name("Active");
@@ -171,30 +171,30 @@ function setup(shaders) {
 
     // Data object to manipulate
     let data = {
-      name: "Sphere",
-      position: { x: 0, y: 0, z: 0 },
-      rotation: { x: 0, y: 0, z: 0 },
-      scale: { x: 1, y: 1, z: 1 },
-      material: {
-        shader: "gouraud",
-        Ka: [14, 52, 25], // Ambient color (RGB, a darker grey for ambient lighting)
-        Kd: [69, 100, 15], // Diffuse color (RGB, a neutral mid-grey)
-        Ks: [114, 114, 114], // Specular color (RGB, a brighter grey for highlights)
+        name: "Sphere",
+        position: { x: 0, y: 0, z: 0 },
+        rotation: { x: 0, y: 0, z: 0 },
+        scale: { x: 1, y: 1, z: 1 },
+        material: {
+            shader: "gouraud",
+            Ka: [14, 52, 25], // Ambient color (RGB, a darker grey for ambient lighting)
+            Kd: [69, 100, 15], // Diffuse color (RGB, a neutral mid-grey)
+            Ks: [114, 114, 114], // Specular color (RGB, a brighter grey for highlights)
 
-        shininess: 100,
-      },
-      animate: false
+            shininess: 100,
+        },
+        animate: false
     };
 
-    let baseMaterial= {
-        Ka: [0,0,0], // Ambient color (RGB, a darker grey for ambient lighting)
-        Kd: [107,82,68], // Diffuse color (RGB, a neutral mid-grey)
-        Ks: [0,0,0], // Specular color (RGB, a brighter grey for highlights)
+    let baseMaterial = {
+        Ka: [0, 0, 0], // Ambient color (RGB, a darker grey for ambient lighting)
+        Kd: [107, 82, 68], // Diffuse color (RGB, a neutral mid-grey)
+        Ks: [0, 0, 0], // Specular color (RGB, a brighter grey for highlights)
 
         shininess: 50,
     };
 
-    objectGUI.add(data, "name",["Bunny","Cow","Sphere","Cylinder","Cube","Pyramid","Torus"]).name("Name");
+    objectGUI.add(data, "name", ["Bunny", "Cow", "Sphere", "Cylinder", "Cube", "Pyramid", "Torus"]).name("Name");
     // GUI Folders
     const objectTransform = objectGUI.addFolder("Transform");
     const positionFolder = objectTransform.addFolder("Position");
@@ -204,7 +204,7 @@ function setup(shaders) {
 
     const rotationFolder = objectTransform.addFolder("Rotation");
     rotationFolder.add(data.rotation, "x", -180, 180, 1).name("X").domElement.style.pointerEvents = "none";
-    rotationFolder.add(data.rotation, "y", -180, 180, 0.1).name("Y").listen();   
+    rotationFolder.add(data.rotation, "y", -180, 180, 0.1).name("Y").listen();
     rotationFolder.add(data.rotation, "z", -180, 180, 1).name("Z").domElement.style.pointerEvents = "none";
 
     const scaleFolder = objectTransform.addFolder("Scale");
@@ -214,8 +214,8 @@ function setup(shaders) {
 
     const materialFolder = objectGUI.addFolder("Material");
     // Watch for changes to the shader in the GUI
-    materialFolder.add(data.material, "shader", ["gouraud", "phong"]).name("Shader").onChange(function(newShader) {
-    updateShaders(gl, newShader); // Update shaders dynamically
+    materialFolder.add(data.material, "shader", ["gouraud", "phong"]).name("Shader").onChange(function (newShader) {
+        updateShaders(gl, newShader); // Update shaders dynamically
     });
 
     // Ambient (Ka) color
@@ -230,13 +230,13 @@ function setup(shaders) {
     // Shininess
     materialFolder.add(data.material, "shininess", 0, 200, 1).name("Shininess");
 
-    objectGUI.add(data,"animate").name("Animate").onChange(function(){isAnimating=!isAnimating;});
+    objectGUI.add(data, "animate").name("Animate").onChange(function () { isAnimating = !isAnimating; });
 
     // Open folders by default
     positionFolder.open();
     rotationFolder.open();
     scaleFolder.open();
-    
+
     // matrices
     let mView, mProjection;
 
@@ -251,7 +251,7 @@ function setup(shaders) {
     window.addEventListener('resize', resizeCanvasToFullWindow);
 
     window.addEventListener('wheel', function (event) {
-        if (!event.shiftKey && !event.metaKey ) { // Change fovy
+        if (!event.shiftKey && !event.metaKey) { // Change fovy
             const factor = 1 - event.deltaY / 1000;
             camera.fovy = Math.max(1, Math.min(100, camera.fovy * factor));
         }
@@ -366,22 +366,22 @@ function setup(shaders) {
         STACK.multScale([4, 0.05, 4]);
         uploadModelView();
 
-        uploadMaterial(gl,program,baseMaterial)
+        uploadMaterial(gl, program, baseMaterial)
         CUBE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
-        
+
         STACK.popMatrix();
     }
 
     function object() {
         STACK.pushMatrix();
-        
+
         // Apply transformations
         STACK.multScale([data.scale.x, data.scale.y, data.scale.z]); // Apply scale
         uploadModelView();
         // Draw the selected object
         const selectedObject = objectMapping[data.name];
         selectedObject.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
-    
+
         STACK.popMatrix();
     }
 
@@ -390,11 +390,11 @@ function setup(shaders) {
         STACK.multTranslation([lightsData.worldLight.position.x, lightsData.worldLight.position.y, lightsData.worldLight.position.z]);
         STACK.multScale([0.05, 0.05, 0.05]);
         uploadModelView();
-        
+
         let corR = lightsData.worldLight.diffuse[0] / 255;
         let corG = lightsData.worldLight.diffuse[1] / 255;
         let corB = lightsData.worldLight.diffuse[2] / 255;
-        let cor = [corR,corG,corB];
+        let cor = [corR, corG, corB];
 
         // Use the miniShader program
         gl.useProgram(miniProgram);
@@ -402,21 +402,21 @@ function setup(shaders) {
         // Set the uniform for the color
         const colorLocation = gl.getUniformLocation(miniProgram, 'uColor');
         gl.uniform3fv(colorLocation, cor);
-    
+
         // Set the uniform for the ModelView and Projection matrices
         const modelViewLocation = gl.getUniformLocation(miniProgram, 'uModelViewMatrix');
         gl.uniformMatrix4fv(modelViewLocation, false, flatten(STACK.modelView()));
-    
+
         const projectionLocation = gl.getUniformLocation(miniProgram, 'uProjectionMatrix');
         gl.uniformMatrix4fv(projectionLocation, false, flatten(mProjection));
-    
+
         // Draw the sphere
         SPHERE.draw(gl, miniProgram, options.wireframe ? gl.LINES : gl.TRIANGLES);
-    
+
         gl.useProgram(program); // Unbind the shader program
         STACK.popMatrix();
     }
-    
+
     function cameraLight(mProjection) {
         STACK.pushMatrix();
         STACK.loadIdentity();
@@ -427,25 +427,25 @@ function setup(shaders) {
         let corR = lightsData.cameraLight.diffuse[0] / 255;
         let corG = lightsData.cameraLight.diffuse[1] / 255;
         let corB = lightsData.cameraLight.diffuse[2] / 255;
-        let cor = [corR,corG,corB];
-    
+        let cor = [corR, corG, corB];
+
         gl.useProgram(miniProgram);
-    
+
         const colorLocation = gl.getUniformLocation(miniProgram, 'uColor');
         gl.uniform3fv(colorLocation, cor);
-    
+
         const modelViewLocation = gl.getUniformLocation(miniProgram, 'uModelViewMatrix');
         gl.uniformMatrix4fv(modelViewLocation, false, flatten(STACK.modelView()));
-    
+
         const projectionLocation = gl.getUniformLocation(miniProgram, 'uProjectionMatrix');
         gl.uniformMatrix4fv(projectionLocation, false, flatten(mProjection));
-    
+
         SPHERE.draw(gl, miniProgram, options.wireframe ? gl.LINES : gl.TRIANGLES);
-    
+
         gl.useProgram(program);
         STACK.popMatrix();
     }
-    
+
     function objectLight(mProjection) {
         STACK.pushMatrix();
         STACK.multTranslation([lightsData.objectLight.position.x, lightsData.objectLight.position.y, lightsData.objectLight.position.z]);
@@ -455,28 +455,28 @@ function setup(shaders) {
         let corR = lightsData.objectLight.diffuse[0] / 255;
         let corG = lightsData.objectLight.diffuse[1] / 255;
         let corB = lightsData.objectLight.diffuse[2] / 255;
-        let cor = [corR,corG,corB];
-    
+        let cor = [corR, corG, corB];
+
         gl.useProgram(miniProgram);
-    
+
         const colorLocation = gl.getUniformLocation(miniProgram, 'uColor');
         gl.uniform3fv(colorLocation, cor);
-    
+
         const modelViewLocation = gl.getUniformLocation(miniProgram, 'uModelViewMatrix');
         gl.uniformMatrix4fv(modelViewLocation, false, flatten(STACK.modelView()));
-    
+
         const projectionLocation = gl.getUniformLocation(miniProgram, 'uProjectionMatrix');
         gl.uniformMatrix4fv(projectionLocation, false, flatten(mProjection));
-    
+
         SPHERE.draw(gl, miniProgram, options.wireframe ? gl.LINES : gl.TRIANGLES);
-    
+
         gl.useProgram(program);
         STACK.popMatrix();
     }
-    
+
     function objectWithLight(mProjection) {
         STACK.pushMatrix();
-    
+
         // Apply transformations
         STACK.multTranslation([data.position.x, data.position.y, data.position.z]); // Apply position
         STACK.multRotationY(data.rotation.y); // Apply rotation on the Y-axis
@@ -484,27 +484,27 @@ function setup(shaders) {
 
         object();
         objectLight(mProjection);
-        
-        STACK.popMatrix();        
+
+        STACK.popMatrix();
     }
 
     function animateObject(time) {
         STACK.pushMatrix();
-    
+
         const amplitude = 1;
         const frequency = 0.002;
         const yPosition = 0.45 * (amplitude + Math.sin(frequency * time));
-    
+
         const rotationSpeed = 0.05;
         const yRotation = (time * rotationSpeed) % 360;
-    
+
         STACK.multTranslation([data.position.x, yPosition, data.position.z]);
         STACK.multRotationY(yRotation);
         STACK.multScale([data.scale.x, data.scale.y, data.scale.z]);
         uploadModelView();
-    
+
         objectWithLight();
-    
+
         STACK.popMatrix();
     }
 
@@ -512,32 +512,32 @@ function setup(shaders) {
         lightsData.cameraLight.position.x = camera.eye[0];
         lightsData.cameraLight.position.y = camera.eye[1];
         lightsData.cameraLight.position.z = camera.eye[2];
-    }    
+    }
 
     function uploadLights(gl, program, lightsData, mView) {
         const activeLights = Object.values(lightsData).filter(light => light.active);
         const numLights = Math.min(activeLights.length, 8); // Max lights = 8
-    
+
         // Upload the number of active lights
         gl.uniform1i(gl.getUniformLocation(program, "u_n_lights"), numLights);
-    
+
         // Loop through each light and upload its data
         for (let i = 0; i < numLights; i++) {
             const light = activeLights[i];
-    
+
             const w = light.directional ? 0.0 : 1.0; // Directional or point light
             let pos = vec4(light.position.x, light.position.y, light.position.z, w);
-    
-            if(light.type != 1){
+
+            if (light.type != 1) {
                 // Transform light position to camera space
                 pos = mult(mView, pos);
             }
-    
+
             // Normalize color values to [0, 1]
             const ia = [light.ambient[0] / 255, light.ambient[1] / 255, light.ambient[2] / 255];
             const id = [light.diffuse[0] / 255, light.diffuse[1] / 255, light.diffuse[2] / 255];
             const is = [light.specular[0] / 255, light.specular[1] / 255, light.specular[2] / 255];
-    
+
             // Construct uniform names dynamically
             gl.uniform4fv(gl.getUniformLocation(program, `u_light[${i}].pos`), pos);
             gl.uniform3fv(gl.getUniformLocation(program, `u_light[${i}].Ia`), ia);
@@ -545,14 +545,14 @@ function setup(shaders) {
             gl.uniform3fv(gl.getUniformLocation(program, `u_light[${i}].Is`), is);
         }
     }
-    
+
     function uploadMaterial(gl, program, material) {
-        
+
         const materialAmb = [material.Ka[0] / 255, material.Ka[1] / 255, material.Ka[2] / 255] // Ambient (vec3)
         const materialDif = [material.Kd[0] / 255, material.Kd[1] / 255, material.Kd[2] / 255] // Diffuse (vec3)
         const materialSpe = [material.Ks[0] / 255, material.Ks[1] / 255, material.Ks[2] / 255] // Specular (vec3)
-            
-    
+
+
         // Skip the block index and binding block steps
         gl.uniform3fv(gl.getUniformLocation(program, "u_material.Ka"), materialAmb);
         gl.uniform3fv(gl.getUniformLocation(program, "u_material.Kd"), materialDif);
@@ -581,11 +581,11 @@ function setup(shaders) {
         }
 
         gl.useProgram(program);
-        
+
         mView = lookAt(camera.eye, camera.at, camera.up);
         STACK.loadMatrix(mView);
-        
-        mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);        
+
+        mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
 
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_view"), false, flatten(mView));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_view_normals"), false, flatten(normalMatrix(mView)));
@@ -610,14 +610,14 @@ function setup(shaders) {
             // Draw the object in its current static position
             objectWithLight(mProjection);
         }
-        
+
         //uploadLights
         uploadLights(gl, program, lightsData, mView);
-        
-        
+
+
     }
 }
 
-const urls = ['gShader.vert', 'gShader.frag','pShader.vert','pShader.frag','miniShader.vert','miniShader.frag'];
+const urls = ['gShader.vert', 'gShader.frag', 'pShader.vert', 'pShader.frag', 'miniShader.vert', 'miniShader.frag'];
 
 loadShadersFromURLS(urls).then(shaders => setup(shaders));
