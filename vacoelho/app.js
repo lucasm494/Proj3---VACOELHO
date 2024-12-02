@@ -56,7 +56,7 @@ function setup(shaders) {
 
     let options = {
         wireframe: false,
-        normals: true,
+        showLights: true,
         backfaceCulling: true,
         zBuffer: true
     }
@@ -97,9 +97,9 @@ function setup(shaders) {
 
     const optionsGui = gui.addFolder("options");
     optionsGui.add(options, "wireframe");
-    optionsGui.add(options, "normals");
-    optionsGui.add(options, "backfaceCulling");//TODO
-    optionsGui.add(options, "zBuffer");//TODO
+    optionsGui.add(options, "showLights");//TODO please implement this so the 3 mini spheres show/hide when clicking here
+    optionsGui.add(options, "backfaceCulling");
+    optionsGui.add(options, "zBuffer");
 
     const cameraGui = gui.addFolder("camera");
 
@@ -483,12 +483,14 @@ function setup(shaders) {
         uploadModelView();
 
         object();
-        objectLight(mProjection);
+        if (options.showLights){
+            objectLight(mProjection);
+        }
 
         STACK.popMatrix();
     }
 
-    function animateObject(time) {
+    function animateObject(time,mProjection) {
         STACK.pushMatrix();
 
         const amplitude = 1;
@@ -503,7 +505,7 @@ function setup(shaders) {
         STACK.multScale([data.scale.x, data.scale.y, data.scale.z]);
         uploadModelView();
 
-        objectWithLight();
+        objectWithLight(mProjection);
 
         STACK.popMatrix();
     }
@@ -593,27 +595,28 @@ function setup(shaders) {
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_projection"), false, flatten(mProjection));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "u_normals"), false, flatten(normalMatrix(STACK.modelView())));
 
-        gl.uniform1i(gl.getUniformLocation(program, "u_use_normals"), options.normals);
-
         // Draw the base
         base();
 
-        worldLight(mProjection);
-        cameraLight(mProjection);
         //uploadMaterial of the object
         uploadMaterial(gl, program, data.material);
 
         // Animate the object if the flag is active
         if (isAnimating) {
-            animateObject(time);
+            animateObject(time,mProjection);
         } else {
             // Draw the object in its current static position
             objectWithLight(mProjection);
         }
 
+         // Conditionally show lights based on the options.showLights value
+        if (options.showLights) {
+            worldLight(mProjection);   // Render world light sphere
+            cameraLight(mProjection);  // Render camera light sphere
+        }
+
         //uploadLights
         uploadLights(gl, program, lightsData, mView);
-
 
     }
 }
