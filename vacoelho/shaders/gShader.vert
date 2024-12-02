@@ -6,9 +6,6 @@ in vec3 a_normal;
 uniform mat4 u_projection;
 uniform mat4 u_model_view;   // Model-view matrix (camera space)
 uniform mat4 u_normals;      // Normal transformation matrix (camera space)
-uniform mat4 u_model;        // Model matrix (object space)
-uniform mat4 u_view;
-uniform mat4 u_view_normals;
 
 const int MAX_LIGHTS = 8;
 struct LightInfo {
@@ -16,7 +13,6 @@ struct LightInfo {
     vec3 Ia;   // Ambient intensity
     vec3 Id;   // Diffuse intensity
     vec3 Is;   // Specular intensity
-    int type;  // 0 - world space, 1 - camera space, 2 - object space
 };
 
 struct MaterialInfo {
@@ -55,7 +51,6 @@ void main() {
         float diffuseFactor = max(dot(L, N), 0.0);
         vec3 diffuseColor = diffuseFactor * (u_light[i].Id * u_material.Kd);
 
-        
         vec3 H = normalize(L + V); // Halfway vector
         float specularFactor = pow(max(dot(N, H), 0.0), u_material.shininess);
         vec3 specularColor = specularFactor * (u_light[i].Is * u_material.Ks);

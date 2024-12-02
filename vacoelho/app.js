@@ -483,14 +483,14 @@ function setup(shaders) {
         uploadModelView();
 
         object();
-        if (options.showLights){
+        if (options.showLights) {
             objectLight(mProjection);
         }
 
         STACK.popMatrix();
     }
 
-    function animateObject(time,mProjection) {
+    function animateObject(time, mProjection) {
         STACK.pushMatrix();
 
         const amplitude = 1;
@@ -508,12 +508,6 @@ function setup(shaders) {
         objectWithLight(mProjection);
 
         STACK.popMatrix();
-    }
-
-    function updateCameraLightPosition() {
-        lightsData.cameraLight.position.x = camera.eye[0];
-        lightsData.cameraLight.position.y = camera.eye[1];
-        lightsData.cameraLight.position.z = camera.eye[2];
     }
 
     function uploadLights(gl, program, lightsData, mView) {
@@ -603,13 +597,13 @@ function setup(shaders) {
 
         // Animate the object if the flag is active
         if (isAnimating) {
-            animateObject(time,mProjection);
+            animateObject(time, mProjection);
         } else {
             // Draw the object in its current static position
             objectWithLight(mProjection);
         }
 
-         // Conditionally show lights based on the options.showLights value
+        // Conditionally show lights based on the options.showLights value
         if (options.showLights) {
             worldLight(mProjection);   // Render world light sphere
             cameraLight(mProjection);  // Render camera light sphere

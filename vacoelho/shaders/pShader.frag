@@ -33,6 +33,7 @@ uniform MaterialInfo u_material;   // Material properties
 out vec4 fragColor; // Output color
 
 void main() {
+
     vec3 N = normalize(frag_normal);  // Normalized normal vector
     vec3 V = normalize(fViewer);      // Normalized viewer direction
 
@@ -50,13 +51,13 @@ void main() {
         ambientTotal += u_material.Ka * u_light[i].Ia;
 
         // Diffuse component
-        float NdotL = max(dot(N, L), 0.0);
+        float NdotL = max(dot(L, N), 0.0);
         diffuseTotal += u_material.Kd * u_light[i].Id * NdotL;
 
         // Specular component
         float NdotH = max(dot(N, H), 0.0);
-        vec3 specular = vec3(0.0); // Default to black if light is behind the surface
-        if (NdotL > 0.0) {         // Specular only when light is in front
+        vec3 specular = vec3(0.0,0.0,0.0); // Default to black if light is behind the surface
+        if (NdotL >= 0.0) {         // Specular only when light is in front
             specular = u_material.Ks * u_light[i].Is * pow(NdotH, u_material.shininess);
         }
         specularTotal += specular;
