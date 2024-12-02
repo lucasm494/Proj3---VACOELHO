@@ -26,13 +26,13 @@ function setup(shaders) {
     BUNNY.init(gl);
     COW.init(gl);
 
-    const miniProgram = buildProgramFromSources(gl, shaders["miniShader.vert"], shaders["miniShader.frag"]);
+    const miniProgram = buildProgramFromSources(gl, shaders["shader3.vert"], shaders["shader3.frag"]);
     gl.useProgram(miniProgram);
 
     // Function to rebuild the program based on the selected shader
     function updateShaders(gl, shaderType) {
-        const vertexShader = shaderType === "gouraud" ? shaders["gShader.vert"] : shaders["pShader.vert"];
-        const fragmentShader = shaderType === "gouraud" ? shaders["gShader.frag"] : shaders["pShader.frag"];
+        const vertexShader = shaderType === "gouraud" ? shaders["shader1.vert"] : shaders["shader2.vert"];
+        const fragmentShader = shaderType === "gouraud" ? shaders["shader1.frag"] : shaders["shader2.frag"];
 
         // Build a new program
         program = buildProgramFromSources(gl, vertexShader, fragmentShader);
@@ -615,6 +615,6 @@ function setup(shaders) {
     }
 }
 
-const urls = ['gShader.vert', 'gShader.frag', 'pShader.vert', 'pShader.frag', 'miniShader.vert', 'miniShader.frag'];
+const urls = ['shader1.vert', 'shader1.frag', 'shader2.vert', 'shader2.frag', 'shader3.vert', 'shader3.frag'];
 
 loadShadersFromURLS(urls).then(shaders => setup(shaders));
