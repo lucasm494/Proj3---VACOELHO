@@ -333,12 +333,6 @@ function setup(shaders) {
         gl.clearColor(0.5, 0.5, 0.5, 1.0);
     });
 
-    window.addEventListener('keydown', (event) => {
-        if (event.code === 'Space') {
-            isAnimating = !isAnimating; // Toggle animation state
-        }
-    });
-
     window.requestAnimationFrame(render);
 
     function resizeCanvasToFullWindow() {
