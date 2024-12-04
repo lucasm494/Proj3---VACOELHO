@@ -38,10 +38,10 @@ void main() {
     for (int i = 0; i < u_n_lights; i++) {
         if (u_light[i].pos.w == 0.0) {
             // Directional light
-            fLight[i] = normalize((u_view_normals * u_light[i].pos).xyz);
+            fLight[i] = normalize((u_light[i].pos).xyz);
         } else {
             // Point light
-            fLight[i] = normalize((u_view * u_light[i].pos).xyz - frag_position);
+            fLight[i] = normalize((u_light[i].pos).xyz - frag_position);
         }
     }
 
